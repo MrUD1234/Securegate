@@ -3,7 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { validateEnv } from "@/lib/env";
 import "./globals.css";
 
-if (typeof globalThis !== "undefined") {
+if (typeof window !== "undefined") {
   validateEnv();
 }
 

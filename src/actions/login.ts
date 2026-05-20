@@ -37,7 +37,7 @@ export const login = async (values: z.infer<typeof LoginSchema>): Promise<Action
 
   if (!existingUser || !existingUser.email || !existingUser.password) {
     await bcrypt.compare("dummy", "$2b$12$00000000000000000000000000000000000");
-    return { status: "error", message: "Invalid email or password" };
+    return { status: "error", message: "Invalid credentials" };
   }
 
   if (existingUser.lockoutUntil && new Date(existingUser.lockoutUntil) > new Date()) {
@@ -72,7 +72,7 @@ export const login = async (values: z.infer<typeof LoginSchema>): Promise<Action
       where: { id: existingUser.id },
       data: { failedAttempts: attempts },
     });
-    return { status: "error", message: `Invalid email or password (${MAX_ATTEMPTS - attempts} attempt${MAX_ATTEMPTS - attempts === 1 ? "" : "s"} remaining)` };
+    return { status: "error", message: "Invalid credentials" };
   }
 
   const freshUser = await db.user.update({
