@@ -4,42 +4,19 @@ import { useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import { newPassword } from "@/actions/new-password";
 import { NewPasswordSchema } from "@/schemas";
+import { usePasswordStrength } from "@/lib/usePasswordStrength";
 import Link from "next/link";
 
 export const NewPasswordForm = () => {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
-  const [error, setError] = useState<string | undefined>("");
-  const [success, setSuccess] = useState<string | undefined>("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isPending, startTransition] = useTransition();
-  const [password, setPassword] = useState("");
-  const [strength, setStrength] = useState("");
-  const [focused, setFocused] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
-
-  const checks = {
-    min: password.length >= 10,
-    upper: /[A-Z]/.test(password),
-    lower: /[a-z]/.test(password),
-    number: /[0-9]/.test(password),
-    special: /[!@#$%^&*(),.?":{}|<>_]/.test(password),
-  };
-
-  const requirement = !checks.min ? "At least 10 characters" : !checks.upper ? "One uppercase letter" : !checks.lower ? "One lowercase letter" : !checks.number ? "One number" : !checks.special ? "One special character" : null;
-
-  const calculateStrength = (val: string) => {
-    setPassword(val);
-    const all = val.length >= 10 && /[A-Z]/.test(val) && /[a-z]/.test(val) && /[0-9]/.test(val) && /[!@#$%^&*(),.?":{}|<>_]/.test(val);
-    if (val.length === 0) {
-      setStrength("");
-    } else if (all) {
-      setStrength("pwd-strong");
-    } else {
-      setStrength("pwd-weak");
-    }
-  };
+  const { password, setPassword, focused, setFocused, strengthClass, requirement } = usePasswordStrength();
 
   const onBlur = () => {
     const result = NewPasswordSchema.safeParse({ password });
@@ -67,8 +44,8 @@ export const NewPasswordForm = () => {
     startTransition(() => {
       newPassword(result.data, token)
         .then((data) => {
-          setError(data?.error);
-          setSuccess(data?.success);
+          if (data.status === "error") setError(data.message);
+          else setSuccess(data.message);
         })
         .catch(() => setError("Something went wrong"));
     });
@@ -114,7 +91,7 @@ export const NewPasswordForm = () => {
               name="password"
               type={showPwd ? "text" : "password"}
               value={password}
-              onChange={(e) => { calculateStrength(e.target.value); setFieldErrors((prev) => ({ ...prev, password: "" })); }}
+              onChange={(e) => { setPassword(e.target.value); setFieldErrors((prev) => ({ ...prev, password: "" })); }}
               onFocus={() => setFocused(true)}
               onBlur={() => { setFocused(false); onBlur(); }}
               required
@@ -133,11 +110,9 @@ export const NewPasswordForm = () => {
           {focused && requirement && <div className="pwd-requirement">{requirement}</div>}
           {!focused && fieldErrors.password && <div className="form-error">{fieldErrors.password}</div>}
           {password.length > 0 && (
-            <>
-              <div className="pwd-strength-bar">
-                <div className={`pwd-strength-fill ${strength}`}></div>
-              </div>
-            </>
+            <div className="pwd-strength-bar">
+              <div className={`pwd-strength-fill ${strengthClass}`}></div>
+            </div>
           )}
         </div>
 

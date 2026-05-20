@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/actions/login";
 import { LoginSchema } from "@/schemas";
@@ -8,17 +8,25 @@ import Link from "next/link";
 
 export const LoginForm = () => {
   const router = useRouter();
-  const [error, setError] = useState<string | undefined>("");
-  const [success, setSuccess] = useState<string | undefined>("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isPending, startTransition] = useTransition();
   const [showPwd, setShowPwd] = useState(false);
   const [pwdLen, setPwdLen] = useState(0);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const pwdRef = useRef<HTMLInputElement>(null);
+
+  const getValues = () => ({
+    email: emailRef.current?.value ?? "",
+    password: pwdRef.current?.value ?? "",
+  });
 
   const validateField = (field: string, value: string) => {
+    const vals = getValues();
     const result = LoginSchema.safeParse({
-      email: field === "email" ? value : (document.getElementById("email") as HTMLInputElement)?.value || "",
-      password: field === "password" ? value : (document.getElementById("password") as HTMLInputElement)?.value || "",
+      email: field === "email" ? value : vals.email,
+      password: field === "password" ? value : vals.password,
     });
     if (!result.success) {
       const err = result.error.flatten().fieldErrors;
@@ -40,11 +48,9 @@ export const LoginForm = () => {
     setSuccess("");
     setFieldErrors({});
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    const vals = getValues();
 
-    const result = LoginSchema.safeParse({ email, password });
+    const result = LoginSchema.safeParse(vals);
     if (!result.success) {
       const err = result.error.flatten().fieldErrors;
       setFieldErrors({
@@ -58,20 +64,14 @@ export const LoginForm = () => {
       login(result.data)
         .then((data) => {
           if (!data) return;
-          if ("field" in data && data.field) {
-            setError(data.error!);
-            return;
-          }
-          if ("success" in data) {
-            if (data.success === true) {
-              router.push("/dashboard");
+          if (data.status === "success") {
+            if (data.redirect) {
+              router.push(data.redirect);
             } else {
-              setSuccess(data.success as string);
+              setSuccess(data.message);
             }
-            return;
-          }
-          if ("error" in data && data.error) {
-            setError(data.error);
+          } else {
+            setError(data.message);
           }
         });
     });
@@ -90,7 +90,7 @@ export const LoginForm = () => {
       <form onSubmit={onSubmit}>
         <div className="form-group">
           <label className="form-label" htmlFor="email">Email</label>
-          <input className="form-input" disabled={isPending} id="email" name="email" type="email" required onBlur={onBlur} placeholder=" " />
+          <input className="form-input" disabled={isPending} ref={emailRef} id="email" name="email" type="email" required onBlur={onBlur} placeholder=" " />
           {fieldErrors.email && <div className="form-error">{fieldErrors.email}</div>}
         </div>
 
@@ -100,7 +100,7 @@ export const LoginForm = () => {
             <Link href="/auth?mode=reset" className="auth-link" style={{ fontSize: "0.8rem" }}>Forgot password?</Link>
           </div>
           <div className="pwd-input-wrap">
-            <input className="form-input" disabled={isPending} id="password" name="password" type={showPwd ? "text" : "password"} required onBlur={onBlur} onChange={(e) => { setPwdLen(e.target.value.length); setError(""); }} placeholder=" " />
+            <input className="form-input" disabled={isPending} ref={pwdRef} id="password" name="password" type={showPwd ? "text" : "password"} required onBlur={onBlur} onChange={(e) => { setPwdLen(e.target.value.length); setError(""); }} placeholder=" " />
             {pwdLen > 0 && (
               <button type="button" className="pwd-toggle" onClick={() => setShowPwd((p) => !p)} tabIndex={-1} aria-label={showPwd ? "Hide password" : "Show password"}>
                 {showPwd ? (

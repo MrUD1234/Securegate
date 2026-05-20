@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { validateEnv } from "@/lib/env";
 import "./globals.css";
+
+if (typeof globalThis !== "undefined") {
+  validateEnv();
+}
 
 const inter = Inter({
   subsets: ["latin"],

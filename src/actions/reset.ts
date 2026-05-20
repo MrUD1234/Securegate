@@ -1,16 +1,27 @@
 "use server";
 
 import * as z from "zod";
+import { headers } from "next/headers";
 import { ResetSchema } from "@/schemas";
 import { db } from "@/lib/db";
 import { generatePasswordResetToken } from "@/lib/tokens";
 import { sendPasswordResetEmail } from "@/lib/mail";
+import { rateLimit } from "@/lib/rate-limit";
 
-export const reset = async (values: z.infer<typeof ResetSchema>) => {
+type ActionResult =
+  | { status: "success"; message: string }
+  | { status: "error"; message: string };
+
+export const reset = async (values: z.infer<typeof ResetSchema>): Promise<ActionResult> => {
+  const ip = headers().get("x-forwarded-for") ?? "unknown";
+  const { allowed } = await rateLimit(`reset:${ip}`, 3, 300);
+  if (!allowed) {
+    return { status: "success", message: "If that email exists, a reset link has been sent." };
+  }
   const validatedFields = ResetSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    return { error: "Invalid email!" };
+    return { status: "error", message: "Invalid email!" };
   }
 
   const { email } = validatedFields.data;
@@ -20,7 +31,7 @@ export const reset = async (values: z.infer<typeof ResetSchema>) => {
   });
 
   if (!existingUser) {
-    return { error: "Email not found!" };
+    return { status: "success", message: "If that email exists, a reset link has been sent." };
   }
 
   const passwordResetToken = await generatePasswordResetToken(email);
@@ -29,5 +40,5 @@ export const reset = async (values: z.infer<typeof ResetSchema>) => {
     passwordResetToken.token,
   );
 
-  return { success: "Reset email sent!" };
+  return { status: "success", message: "If that email exists, a reset link has been sent." };
 };

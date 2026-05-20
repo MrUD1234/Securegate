@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -16,6 +16,7 @@ model User {
   password        String?
   failedAttempts  Int       @default(0)
   lockoutUntil    DateTime?
+  sessionVersion  Int       @default(0)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   accounts        Account[]
@@ -66,6 +67,7 @@ model VerificationToken {
   expires DateTime
 
   @@unique([email, token])
+  @@index([email])
 }
 
 model PasswordResetToken {
@@ -75,4 +77,5 @@ model PasswordResetToken {
   expires DateTime
 
   @@unique([email, token])
+  @@index([email])
 }

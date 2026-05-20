@@ -21,8 +21,8 @@ export const NewVerificationForm = () => {
 
     newVerification(token, email ?? undefined)
       .then((data) => {
-        setSuccess(data.success);
-        setError(data.error);
+        if (data.status === "success") setSuccess(data.message);
+        else setError(data.message);
       })
       .catch(() => {
         setError("Something went wrong!");

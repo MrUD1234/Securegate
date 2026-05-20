@@ -16,15 +16,31 @@ export const {
     error: "/auth",
   },
   callbacks: {
-    async session({ token, session }) {
-      if (token.sub && session.user) {
+    async jwt({ token }) {
+      if (token.sub) {
+        const user = await db.user.findUnique({
+          where: { id: token.sub },
+          select: { sessionVersion: true, lockoutUntil: true, emailVerified: true },
+        });
+        if (!user || !user.emailVerified) {
+          return null;
+        }
+        if (user.lockoutUntil && new Date(user.lockoutUntil) > new Date()) {
+          return null;
+        }
+        if (token.sessionVersion !== undefined && token.sessionVersion !== user.sessionVersion) {
+          return null;
+        }
+        token.sessionVersion = user.sessionVersion;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user && token.sub) {
         session.user.id = token.sub;
       }
       return session;
     },
-    async jwt({ token }) {
-      return token;
-    }
   },
   adapter: PrismaAdapter(db),
   session: { strategy: "jwt" },
@@ -35,12 +51,15 @@ export const {
 
         if (validatedFields.success) {
           const { email, password } = validatedFields.data;
-          
+
           const user = await db.user.findUnique({
             where: { email }
           });
-          
-          if (!user || !user.password) return null;
+
+          if (!user || !user.password) {
+            await bcrypt.compare("dummy", "$2b$12$00000000000000000000000000000000000");
+            return null;
+          }
 
           if (user.lockoutUntil && new Date(user.lockoutUntil) > new Date()) {
             return null;

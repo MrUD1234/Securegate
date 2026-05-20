@@ -1,42 +1,59 @@
-import nodemailer from "nodemailer";
+import { env } from "@/lib/env";
 
-const domain = process.env.NEXTAUTH_URL;
-const fromEmail = process.env.FROM_EMAIL || "noreply@securegate.com";
+const domain = env("NEXTAUTH_URL");
+const fromEmail = env("FROM_EMAIL", "noreply@securegate.com");
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: process.env.SMTP_SECURE === "true",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+async function sendEmail(options: { to: string; subject: string; html: string }) {
+  const resendKey = env("RESEND_API_KEY");
 
-export const sendVerificationEmail = async (
-  email: string,
-  token: string
-) => {
-  const confirmLink = `${domain}/auth?mode=verify&token=${token}&email=${encodeURIComponent(email)}`;
+  if (resendKey) {
+    const { Resend } = await import("resend");
+    const resend = new Resend(resendKey);
+    const { error } = await resend.emails.send({
+      from: fromEmail,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+    });
+    if (error) throw new Error(error.message);
+    return;
+  }
+
+  const nodemailer = await import("nodemailer");
+  const transporter = nodemailer.default.createTransport({
+    host: env("SMTP_HOST"),
+    port: Number(env("SMTP_PORT", "587")),
+    secure: env("SMTP_SECURE") === "true",
+    auth: {
+      user: env("SMTP_USER"),
+      pass: env("SMTP_PASS"),
+    },
+  });
 
   await transporter.sendMail({
     from: fromEmail,
+    to: options.to,
+    subject: options.subject,
+    html: options.html,
+  });
+}
+
+export const sendVerificationEmail = async (email: string, token: string) => {
+  const confirmLink = `${domain}/auth?mode=verify&token=${token}&email=${encodeURIComponent(email)}`;
+
+  await sendEmail({
     to: email,
     subject: "Confirm your email",
-    html: `<p>Click <a href="${confirmLink}">here</a> to confirm email.</p>`
+    html: `<p>Click <a href="${confirmLink}">here</a> to confirm email.</p>`,
   });
 };
 
-export const sendPasswordResetEmail = async (
-  email: string,
-  token: string,
-) => {
+export const sendPasswordResetEmail = async (email: string, token: string) => {
   const resetLink = `${domain}/auth?mode=new-password&token=${token}&email=${encodeURIComponent(email)}`;
 
-  await transporter.sendMail({
-    from: fromEmail,
+  await sendEmail({
     to: email,
     subject: "Reset your password",
-    html: `<p>Click <a href="${resetLink}">here</a> to reset password.</p>`
+    html: `<p>Click <a href="${resetLink}">here</a> to reset password.</p>`,
   });
 };

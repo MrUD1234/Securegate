@@ -7,18 +7,22 @@ import { db } from "@/lib/db";
 
 const HISTORY_LIMIT = 5;
 
+type ActionResult =
+  | { status: "success"; message: string }
+  | { status: "error"; message: string };
+
 export const newPassword = async (
   values: z.infer<typeof NewPasswordSchema>,
   token?: string | null,
-) => {
+): Promise<ActionResult> => {
   if (!token) {
-    return { error: "Missing token!" };
+    return { status: "error", message: "Missing token!" };
   }
 
   const validatedFields = NewPasswordSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    return { error: "Invalid fields!" };
+    return { status: "error", message: "Invalid fields!" };
   }
 
   const { password } = validatedFields.data;
@@ -28,13 +32,11 @@ export const newPassword = async (
   });
 
   if (!existingToken) {
-    return { error: "Invalid token!" };
+    return { status: "error", message: "Invalid token!" };
   }
 
-  const hasExpired = new Date(existingToken.expires) < new Date();
-
-  if (hasExpired) {
-    return { error: "Token has expired!" };
+  if (new Date(existingToken.expires) < new Date()) {
+    return { status: "error", message: "Token has expired!" };
   }
 
   const existingUser = await db.user.findUnique({
@@ -43,16 +45,16 @@ export const newPassword = async (
   });
 
   if (!existingUser) {
-    return { error: "Email does not exist!" };
+    return { status: "error", message: "Email does not exist!" };
   }
 
   if (existingUser.password && await bcrypt.compare(password, existingUser.password)) {
-    return { error: "Cannot reuse your current password." };
+    return { status: "error", message: "Cannot reuse your current password." };
   }
 
   for (const entry of existingUser.passwordHistory) {
     if (await bcrypt.compare(password, entry.hash)) {
-      return { error: "Cannot reuse a recent password." };
+      return { status: "error", message: "Cannot reuse a recent password." };
     }
   }
 
@@ -62,13 +64,6 @@ export const newPassword = async (
   const idsToDelete = historyEntries.slice(HISTORY_LIMIT - 1).map(h => h.id);
 
   await db.$transaction([
-    db.user.update({
-      where: { id: existingUser.id },
-      data: { password: hashedPassword, failedAttempts: 0, lockoutUntil: null },
-    }),
-    db.passwordResetToken.delete({
-      where: { id: existingToken.id }
-    }),
     ...(existingUser.password
       ? [db.passwordHistory.create({
           data: { userId: existingUser.id, hash: existingUser.password },
@@ -79,7 +74,14 @@ export const newPassword = async (
           where: { id: { in: idsToDelete } },
         })]
       : []),
+    db.user.update({
+      where: { id: existingUser.id },
+      data: { password: hashedPassword, failedAttempts: 0, lockoutUntil: null, sessionVersion: { increment: 1 } },
+    }),
+    db.passwordResetToken.delete({
+      where: { id: existingToken.id }
+    }),
   ]);
 
-  return { success: "Password updated!" };
+  return { status: "success", message: "Password updated!" };
 };

@@ -41,8 +41,8 @@ export const ResetForm = () => {
     startTransition(() => {
       reset(result.data)
         .then((data) => {
-          setError(data?.error);
-          setSuccess(data?.success);
+          if (data.status === "error") setError(data.message);
+          else setSuccess(data.message);
         })
         .catch(() => setError("Something went wrong"));
     });
