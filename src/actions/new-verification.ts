@@ -10,7 +10,7 @@ type ActionResult =
 
 export const newVerification = async (token: string, email?: string): Promise<ActionResult> => {
   const ip = headers().get("x-forwarded-for") ?? "unknown";
-  const { allowed } = await rateLimit(`verify:${ip}`, 5, 60);
+  const { allowed } = await rateLimit(`verify:${ip}`, 10, 60);
   if (!allowed) {
     return { status: "error", message: "Too many requests. Please try again later." };
   }

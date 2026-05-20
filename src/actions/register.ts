@@ -15,7 +15,7 @@ type ActionResult =
 
 export const register = async (values: z.infer<typeof RegisterSchema>): Promise<ActionResult> => {
   const ip = headers().get("x-forwarded-for") ?? "unknown";
-  const { allowed } = await rateLimit(`register:${ip}`, 3, 300);
+  const { allowed } = await rateLimit(`register:${ip}`, 10, 300);
   if (!allowed) {
     return { status: "error", message: "Too many requests. Please try again later." };
   }

@@ -18,7 +18,7 @@ export const newPassword = async (
   token?: string | null,
 ): Promise<ActionResult> => {
   const ip = headers().get("x-forwarded-for") ?? "unknown";
-  const { allowed } = await rateLimit(`new-password:${ip}`, 5, 60);
+  const { allowed } = await rateLimit(`new-password:${ip}`, 10, 60);
   if (!allowed) {
     return { status: "error", message: "Too many requests. Please try again later." };
   }

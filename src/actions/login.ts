@@ -19,7 +19,7 @@ type ActionResult =
 
 export const login = async (values: z.infer<typeof LoginSchema>): Promise<ActionResult> => {
   const ip = headers().get("x-forwarded-for") ?? "unknown";
-  const { allowed: ipAllowed } = await rateLimit(`login:${ip}`, 10, 60);
+  const { allowed: ipAllowed } = await rateLimit(`login:${ip}`, 30, 60);
   if (!ipAllowed) {
     return { status: "error", message: "Too many requests. Please try again later." };
   }
@@ -31,7 +31,7 @@ export const login = async (values: z.infer<typeof LoginSchema>): Promise<Action
 
   const { email, password } = validatedFields.data;
 
-  const { allowed: emailAllowed } = await rateLimit(`login:email:${email}`, 5, 60);
+  const { allowed: emailAllowed } = await rateLimit(`login:email:${email}`, 10, 60);
   if (!emailAllowed) {
     return { status: "error", message: "Invalid credentials" };
   }
