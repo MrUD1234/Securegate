@@ -107,13 +107,13 @@ export const RegisterForm = () => {
       <form onSubmit={onSubmit}>
         <div className="form-group">
           <label className="form-label" htmlFor="name">Name</label>
-          <input className="form-input" disabled={isPending} ref={nameRef} id="name" name="name" type="text" required autoFocus onBlur={onBlur} onChange={() => setFieldErrors((prev) => ({ ...prev, name: "" }))} placeholder=" " />
+          <input className="form-input" disabled={isPending} ref={nameRef} id="name" name="name" type="text" required autoFocus onBlur={onBlur} onChange={() => { setError(""); setFieldErrors((prev) => ({ ...prev, name: "" })); }} placeholder=" " />
           {fieldErrors.name && <div className="form-error">{fieldErrors.name}</div>}
         </div>
 
         <div className="form-group">
           <label className="form-label" htmlFor="email">Email</label>
-          <input className="form-input" disabled={isPending} ref={emailRef} id="email" name="email" type="email" required onBlur={onBlur} placeholder=" " />
+          <input className="form-input" disabled={isPending} ref={emailRef} id="email" name="email" type="email" required onBlur={onBlur} onChange={() => { setError(""); setFieldErrors((prev) => ({ ...prev, email: "" })); }} placeholder=" " />
           {fieldErrors.email && <div className="form-error">{fieldErrors.email}</div>}
         </div>
 
@@ -127,7 +127,7 @@ export const RegisterForm = () => {
               name="password"
               type={showPwd ? "text" : "password"}
               value={password}
-              onChange={(e) => { setPassword(e.target.value); setFieldErrors((prev) => ({ ...prev, password: "" })); }}
+              onChange={(e) => { setPassword(e.target.value); setError(""); setFieldErrors((prev) => ({ ...prev, password: "" })); }}
               onFocus={() => setFocused(true)}
               onBlur={(e) => { setFocused(false); onBlur(e); }}
               required
