@@ -17,22 +17,6 @@ export const {
   },
   callbacks: {
     async jwt({ token }) {
-      if (token.sub) {
-        const user = await db.user.findUnique({
-          where: { id: token.sub },
-          select: { sessionVersion: true, lockoutUntil: true, emailVerified: true },
-        });
-        if (!user || !user.emailVerified) {
-          return null;
-        }
-        if (user.lockoutUntil && new Date(user.lockoutUntil) > new Date()) {
-          return null;
-        }
-        if (token.sessionVersion !== undefined && token.sessionVersion !== user.sessionVersion) {
-          return null;
-        }
-        token.sessionVersion = user.sessionVersion;
-      }
       return token;
     },
     async session({ session, token }) {

@@ -1,27 +1,37 @@
 import { env } from "@/lib/env";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 type RateLimitResult = { allowed: boolean; remaining: number };
 
-export async function rateLimit(identifier: string, max: number = 5, window: number = 60): Promise<RateLimitResult> {
-  const redisUrl = env("UPSTASH_REDIS_REST_URL");
-  const redisToken = env("UPSTASH_REDIS_REST_TOKEN");
+const redisUrl = env("UPSTASH_REDIS_REST_URL");
+const redisToken = env("UPSTASH_REDIS_REST_TOKEN");
 
-  if (!redisUrl || !redisToken) {
+const redis = redisUrl && redisToken ? new Redis({ url: redisUrl, token: redisToken }) : null;
+
+const limiters = new Map<string, Ratelimit>();
+
+function getLimiter(max: number, window: number): Ratelimit {
+  const key = `${max}:${window}`;
+  let limiter = limiters.get(key);
+  if (!limiter) {
+    limiter = new Ratelimit({
+      redis: redis!,
+      limiter: Ratelimit.slidingWindow(max, `${window} s`),
+      analytics: true,
+    });
+    limiters.set(key, limiter);
+  }
+  return limiter;
+}
+
+export async function rateLimit(identifier: string, max: number = 5, window: number = 60): Promise<RateLimitResult> {
+  if (!redis) {
     return { allowed: true, remaining: max };
   }
 
   try {
-    const { Ratelimit } = await import("@upstash/ratelimit");
-    const { Redis } = await import("@upstash/redis");
-
-    const redis = new Redis({ url: redisUrl, token: redisToken });
-    const ratelimit = new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(max, `${window} s`),
-      analytics: true,
-    });
-
-    const { success, remaining } = await ratelimit.limit(identifier);
+    const { success, remaining } = await getLimiter(max, window).limit(identifier);
     return { allowed: success, remaining };
   } catch {
     return { allowed: true, remaining: max };
