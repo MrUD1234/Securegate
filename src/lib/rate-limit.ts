@@ -37,7 +37,8 @@ export async function rateLimit(identifier: string, max: number = 5, window: num
   try {
     const { success, remaining } = await getLimiter(max, window).limit(identifier);
     return { allowed: success, remaining };
-  } catch {
-    return { allowed: false, remaining: 0 };
+  } catch (e) {
+    console.error("Rate limit error, allowing request:", e);
+    return { allowed: true, remaining: max };
   }
 }
