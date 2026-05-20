@@ -16,11 +16,21 @@ export const {
     error: "/auth",
   },
   callbacks: {
-    async jwt({ token }) {
+    async jwt({ token, user }) {
+      if (user) {
+        token.sessionVersion = (user as any).sessionVersion;
+      }
       return token;
     },
     async session({ session, token }) {
       if (session.user && token.sub) {
+        const dbUser = await db.user.findUnique({
+          where: { id: token.sub },
+          select: { sessionVersion: true },
+        });
+        if (!dbUser || dbUser.sessionVersion !== token.sessionVersion) {
+          return null as any;
+        }
         session.user.id = token.sub;
       }
       return session;

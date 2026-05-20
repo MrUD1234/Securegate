@@ -19,8 +19,8 @@ type ActionResult =
 
 export const login = async (values: z.infer<typeof LoginSchema>): Promise<ActionResult> => {
   const ip = headers().get("x-forwarded-for") ?? "unknown";
-  const { allowed } = await rateLimit(`login:${ip}`, 10, 60);
-  if (!allowed) {
+  const { allowed: ipAllowed } = await rateLimit(`login:${ip}`, 10, 60);
+  if (!ipAllowed) {
     return { status: "error", message: "Too many requests. Please try again later." };
   }
   const validatedFields = LoginSchema.safeParse(values);
@@ -30,6 +30,11 @@ export const login = async (values: z.infer<typeof LoginSchema>): Promise<Action
   }
 
   const { email, password } = validatedFields.data;
+
+  const { allowed: emailAllowed } = await rateLimit(`login:email:${email}`, 5, 60);
+  if (!emailAllowed) {
+    return { status: "error", message: "Invalid credentials" };
+  }
 
   const existingUser = await db.user.findUnique({
     where: { email }
@@ -42,7 +47,7 @@ export const login = async (values: z.infer<typeof LoginSchema>): Promise<Action
 
   if (existingUser.lockoutUntil && new Date(existingUser.lockoutUntil) > new Date()) {
     const remaining = Math.ceil((new Date(existingUser.lockoutUntil).getTime() - Date.now()) / 60000);
-    return { status: "error", message: `Account locked. Try again in ${remaining} minute${remaining === 1 ? "" : "s"}.` };
+    return { status: "error", message: "Invalid credentials" };
   }
 
   if (existingUser.lockoutUntil && new Date(existingUser.lockoutUntil) <= new Date()) {
@@ -66,7 +71,7 @@ export const login = async (values: z.infer<typeof LoginSchema>): Promise<Action
           lockoutUntil: new Date(Date.now() + LOCKOUT_DURATION_MS),
         },
       });
-      return { status: "error", message: "Account locked. Try again in 15 minutes." };
+      return { status: "error", message: "Invalid credentials" };
     }
     await db.user.update({
       where: { id: existingUser.id },

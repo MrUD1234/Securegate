@@ -27,6 +27,10 @@ function getLimiter(max: number, window: number): Ratelimit {
 
 export async function rateLimit(identifier: string, max: number = 5, window: number = 60): Promise<RateLimitResult> {
   if (!redis) {
+    if (process.env.NODE_ENV === "production") {
+      console.error("Rate limiting unavailable in production — check UPSTASH_REDIS env vars");
+      return { allowed: true, remaining: max };
+    }
     return { allowed: true, remaining: max };
   }
 
@@ -34,6 +38,6 @@ export async function rateLimit(identifier: string, max: number = 5, window: num
     const { success, remaining } = await getLimiter(max, window).limit(identifier);
     return { allowed: success, remaining };
   } catch {
-    return { allowed: true, remaining: max };
+    return { allowed: false, remaining: 0 };
   }
 }

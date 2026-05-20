@@ -7,19 +7,17 @@ const passwordSchema = z.string()
   .regex(/[0-9]/, { message: "Must contain a number" })
   .regex(/[!@#$%^&*(),.?":{}|<>_]/, { message: "Must contain a special character" });
 
+const emailField = () => z.string().email({ message: "Email is required" }).toLowerCase();
+
 export const LoginSchema = z.object({
-  email: z.string().email({
-    message: "Email is required",
-  }),
+  email: emailField(),
   password: z.string().min(1, {
     message: "Password is required",
   }),
 });
 
 export const RegisterSchema = z.object({
-  email: z.string().email({
-    message: "Email is required",
-  }),
+  email: emailField(),
   password: passwordSchema,
   name: z.string().min(1, {
     message: "Name is required",
@@ -27,9 +25,7 @@ export const RegisterSchema = z.object({
 });
 
 export const ResetSchema = z.object({
-  email: z.string().email({
-    message: "Email is required",
-  }),
+  email: emailField(),
 });
 
 export const NewPasswordSchema = z.object({

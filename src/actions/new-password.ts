@@ -2,8 +2,10 @@
 
 import * as z from "zod";
 import bcrypt from "bcryptjs";
+import { headers } from "next/headers";
 import { NewPasswordSchema } from "@/schemas";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 const HISTORY_LIMIT = 5;
 
@@ -15,6 +17,12 @@ export const newPassword = async (
   values: z.infer<typeof NewPasswordSchema>,
   token?: string | null,
 ): Promise<ActionResult> => {
+  const ip = headers().get("x-forwarded-for") ?? "unknown";
+  const { allowed } = await rateLimit(`new-password:${ip}`, 5, 60);
+  if (!allowed) {
+    return { status: "error", message: "Too many requests. Please try again later." };
+  }
+
   if (!token) {
     return { status: "error", message: "Missing token!" };
   }

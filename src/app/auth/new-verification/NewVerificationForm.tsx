@@ -5,11 +5,11 @@ import { useSearchParams } from "next/navigation";
 import { newVerification } from "@/actions/new-verification";
 import Link from "next/link";
 
-export const NewVerificationForm = () => {
+export const NewVerificationForm = ({ token: propToken }: { token?: string | null }) => {
   const [error, setError] = useState<string | undefined>();
   const [success, setSuccess] = useState<string | undefined>();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const token = propToken || searchParams.get("token");
   const email = searchParams.get("email");
 
   const onSubmit = useCallback(() => {

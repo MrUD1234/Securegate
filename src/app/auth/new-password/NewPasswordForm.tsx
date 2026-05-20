@@ -7,9 +7,9 @@ import { NewPasswordSchema } from "@/schemas";
 import { usePasswordStrength } from "@/lib/usePasswordStrength";
 import Link from "next/link";
 
-export const NewPasswordForm = () => {
+export const NewPasswordForm = ({ token: propToken }: { token?: string | null }) => {
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const token = propToken || searchParams.get("token");
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");

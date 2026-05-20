@@ -22,9 +22,9 @@ export const AuthForm = () => {
 
   if (validToken) {
     if (mode === "new-password") {
-      return <NewPasswordForm />;
+      return <NewPasswordForm token={validToken} />;
     }
-    return <NewVerificationForm />;
+    return <NewVerificationForm token={validToken} />;
   }
 
   switch (mode) {

@@ -1,12 +1,19 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { headers } from "next/headers";
+import { rateLimit } from "@/lib/rate-limit";
 
 type ActionResult =
   | { status: "success"; message: string }
   | { status: "error"; message: string };
 
 export const newVerification = async (token: string, email?: string): Promise<ActionResult> => {
+  const ip = headers().get("x-forwarded-for") ?? "unknown";
+  const { allowed } = await rateLimit(`verify:${ip}`, 5, 60);
+  if (!allowed) {
+    return { status: "error", message: "Too many requests. Please try again later." };
+  }
   const existingToken = await db.verificationToken.findFirst({
     where: { token }
   });
