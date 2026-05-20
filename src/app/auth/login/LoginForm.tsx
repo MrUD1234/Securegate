@@ -90,7 +90,7 @@ export const LoginForm = () => {
       <form onSubmit={onSubmit}>
         <div className="form-group">
           <label className="form-label" htmlFor="email">Email</label>
-          <input className="form-input" disabled={isPending} ref={emailRef} id="email" name="email" type="email" required onBlur={onBlur} placeholder=" " />
+          <input className="form-input" disabled={isPending} ref={emailRef} id="email" name="email" type="email" required onBlur={onBlur} onChange={() => { setError(""); setFieldErrors((prev) => ({ ...prev, email: "" })); }} placeholder=" " />
           {fieldErrors.email && <div className="form-error">{fieldErrors.email}</div>}
         </div>
 
@@ -100,7 +100,7 @@ export const LoginForm = () => {
             <Link href="/auth?mode=reset" className="auth-link" style={{ fontSize: "0.8rem" }}>Forgot password?</Link>
           </div>
           <div className="pwd-input-wrap">
-            <input className="form-input" disabled={isPending} ref={pwdRef} id="password" name="password" type={showPwd ? "text" : "password"} required onBlur={onBlur} onChange={(e) => { setPwdLen(e.target.value.length); setError(""); }} placeholder=" " />
+            <input className="form-input" disabled={isPending} ref={pwdRef} id="password" name="password" type={showPwd ? "text" : "password"} required onBlur={onBlur} onChange={(e) => { setPwdLen(e.target.value.length); setError(""); setFieldErrors((prev) => ({ ...prev, password: "" })); }} placeholder=" " />
             {pwdLen > 0 && (
               <button type="button" className="pwd-toggle" onClick={() => setShowPwd((p) => !p)} tabIndex={-1} aria-label={showPwd ? "Hide password" : "Show password"}>
                 {showPwd ? (
