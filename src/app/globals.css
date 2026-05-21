@@ -331,6 +331,12 @@ body {
   transition: all 0.2s ease;
 }
 
+@media (max-width: 768px) {
+  .btn-primary {
+    padding: 0.6rem 0.95rem;
+  }
+}
+
 .btn-primary:hover {
   background-color: var(--primary-hover);
   transform: translateY(-1px);
