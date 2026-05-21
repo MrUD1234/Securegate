@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SecureGate
 
-## Getting Started
+SecureGate is a secure authentication system built with Next.js 14, Prisma, PostgreSQL, and NextAuth/Auth.js.  
+The project focuses heavily on defensive programming, authentication security, and production-minded engineering practices.
 
-First, run the development server:
+## Live Demo
+
+[Live Deployment URL Here]
+
+## GitHub Repository
+
+[GitHub Repository URL Here]
+
+---
+
+# Features
+
+- User Registration
+- Secure Login & Logout
+- Email Verification
+- Forgot Password Flow
+- Password Reset Flow
+- Protected Dashboard Routes
+- Rate Limiting & Account Lockouts
+- Password Hashing with bcrypt
+- Session Protection
+- Email Normalization
+- Security Headers (HSTS, X-Frame-Options, etc.)
+- Token Validation & Expiry Checks
+
+---
+
+# Tech Stack
+
+- Next.js 14
+- React 18
+- Prisma ORM
+- PostgreSQL (Neon)
+- NextAuth/Auth.js v5
+- Zod Validation
+- Upstash Redis
+- Resend Email API
+- TypeScript
+
+---
+
+# Security Measures
+
+The project was built with secure-by-default principles and defensive programming in mind.
+
+Implemented security protections include:
+
+- bcrypt password hashing
+- Generic authentication error messages
+- Session invalidation after password changes
+- Rate limiting and account lockouts
+- Protected route middleware
+- Email verification enforcement
+- Token validation and expiration checks
+- HTTP security headers
+- Environment variable protection
+- Timing attack mitigation
+
+---
+
+# Engineering Principles Applied
+
+## Gall’s Law
+
+The system was intentionally built incrementally:
+1. Basic authentication flow
+2. Session handling
+3. Email verification
+4. Password reset
+5. Security hardening
+6. Rate limiting
+7. Production audit & fixes
+
+This helped reduce complexity and improve stability.
+
+## Murphy’s Law
+
+The system was designed assuming failures and attacks would happen:
+- invalid tokens
+- repeated login attempts
+- malformed input
+- expired sessions
+- unverified users
+- brute-force attacks
+
+Defensive checks and fail-safe handling were implemented throughout the application.
+
+---
+
+# Local Setup
+
+## Clone Repository
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+git clone <repo-url>
+cd securegate
