@@ -39,7 +39,7 @@ The project focuses heavily on defensive programming, authentication security, a
 - NextAuth/Auth.js v5
 - Zod Validation
 - Upstash Redis
-- Resend Email API
+- Nodemailer API
 - TypeScript
 
 ---
