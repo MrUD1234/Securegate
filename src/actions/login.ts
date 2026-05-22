@@ -33,7 +33,7 @@ export const login = async (values: z.infer<typeof LoginSchema>): Promise<Action
 
   const { allowed: emailAllowed } = await rateLimit(`login:email:${email}`, 10, 60);
   if (!emailAllowed) {
-    return { status: "error", message: "Invalid credentials" };
+    return { status: "error", message: "Too many attempts. Please try again later." };
   }
 
   const existingUser = await db.user.findUnique({
@@ -46,8 +46,8 @@ export const login = async (values: z.infer<typeof LoginSchema>): Promise<Action
   }
 
   if (existingUser.lockoutUntil && new Date(existingUser.lockoutUntil) > new Date()) {
-    const remaining = Math.ceil((new Date(existingUser.lockoutUntil).getTime() - Date.now()) / 60000);
-    return { status: "error", message: "Invalid credentials" };
+    const remainingMin = Math.ceil((new Date(existingUser.lockoutUntil).getTime() - Date.now()) / 60000);
+    return { status: "error", message: `Account locked. Try again in ${remainingMin} minute${remainingMin === 1 ? "" : "s"}.` };
   }
 
   if (existingUser.lockoutUntil && new Date(existingUser.lockoutUntil) <= new Date()) {
@@ -63,6 +63,7 @@ export const login = async (values: z.infer<typeof LoginSchema>): Promise<Action
 
   if (!passwordMatch) {
     const attempts = existingUser.failedAttempts + 1;
+    const remaining = MAX_ATTEMPTS - attempts;
     if (attempts >= MAX_ATTEMPTS) {
       await db.user.update({
         where: { id: existingUser.id },
@@ -71,13 +72,13 @@ export const login = async (values: z.infer<typeof LoginSchema>): Promise<Action
           lockoutUntil: new Date(Date.now() + LOCKOUT_DURATION_MS),
         },
       });
-      return { status: "error", message: "Invalid credentials" };
+      return { status: "error", message: "Account locked. Try again in 15 minutes." };
     }
     await db.user.update({
       where: { id: existingUser.id },
       data: { failedAttempts: attempts },
     });
-    return { status: "error", message: "Invalid credentials" };
+    return { status: "error", message: `Invalid credentials. ${remaining} attempt${remaining === 1 ? "" : "s"} remaining.` };
   }
 
   const freshUser = await db.user.update({
