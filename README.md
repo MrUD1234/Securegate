@@ -89,13 +89,3 @@ The system was designed assuming failures and attacks would happen:
 - brute-force attacks
 
 Defensive checks and fail-safe handling were implemented throughout the application.
-
----
-
-# Local Setup
-
-## Clone Repository
-
-```bash
-git clone <repo-url>
-cd securegate
