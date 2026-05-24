@@ -5,11 +5,11 @@ The project focuses heavily on defensive programming, authentication security, a
 
 ## Live Demo
 
-[Live Deployment URL Here]
+https://securegate-os6z.vercel.app/
 
 ## GitHub Repository
 
-[GitHub Repository URL Here]
+https://github.com/MrUD1234/Securegate
 
 ---
 
