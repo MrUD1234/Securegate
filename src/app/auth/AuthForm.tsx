@@ -13,10 +13,10 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 
 export const AuthForm = () => {
   const searchParams = useSearchParams();
-  const rawMode = searchParams.get("mode") || "login";
+  const rawMode = searchParams.get("mode") || "register";
   const mode = ALLOWED_MODES.includes(rawMode as typeof ALLOWED_MODES[number])
     ? (rawMode as typeof ALLOWED_MODES[number])
-    : "login";
+    : "register";
   const token = searchParams.get("token");
   const validToken = token && UUID_REGEX.test(token) ? token : null;
 
