@@ -332,6 +332,22 @@ body {
 }
 
 @media (max-width: 768px) {
+  .auth-wrapper {
+    padding: 1rem;
+  }
+
+  .auth-card {
+    padding: 1rem;
+  }
+
+  .auth-header {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-group {
+    margin-bottom: 0.75rem;
+  }
+
   .btn-primary {
     padding: 0.72rem 0.95rem;
   }
