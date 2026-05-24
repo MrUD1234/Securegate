@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 const PASSWORD_RULES = [
-  { key: "min", test: (v: string) => v.length >= 10, label: "At least 10 characters" },
+  { key: "min", test: (v: string) => v.length >= 8, label: "At least 8 characters" },
   { key: "upper", test: (v: string) => /[A-Z]/.test(v), label: "One uppercase letter" },
   { key: "lower", test: (v: string) => /[a-z]/.test(v), label: "One lowercase letter" },
   { key: "number", test: (v: string) => /[0-9]/.test(v), label: "One number" },

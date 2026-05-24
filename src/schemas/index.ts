@@ -1,7 +1,7 @@
 import * as z from "zod";
 
 const passwordSchema = z.string()
-  .min(10, { message: "Minimum 10 characters required" })
+  .min(8, { message: "Minimum 8 characters required" })
   .regex(/[A-Z]/, { message: "Must contain an uppercase letter" })
   .regex(/[a-z]/, { message: "Must contain a lowercase letter" })
   .regex(/[0-9]/, { message: "Must contain a number" })
